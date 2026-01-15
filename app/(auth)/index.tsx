@@ -30,6 +30,18 @@ import Animated, {
 
 const { width, height } = Dimensions.get('window');
 
+// --- Typed Props for CustomAuthInput ---
+interface CustomAuthInputProps {
+  label?: string;
+  placeholder: string;
+  secureTextEntry?: boolean;
+  value: string;
+  onChangeText: (text: string) => void;
+  icon?: React.ReactNode;
+  keyboardType?: 'default' | 'email-address';
+  autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
+}
+
 // --- Custom Auth Input matching the design ---
 // --- Animated Border Input (Surprising but Simple) ---
 const CustomAuthInput = ({ 
@@ -38,8 +50,10 @@ const CustomAuthInput = ({
   secureTextEntry, 
   value, 
   onChangeText,
-  icon
-}: any) => {
+  icon,
+  keyboardType = 'default',
+  autoCapitalize = 'none',
+}: CustomAuthInputProps) => {
   const isFocused = useSharedValue(0);
   const [secure, setSecure] = useState(secureTextEntry);
 
@@ -133,8 +147,22 @@ export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
 
   const handleAuth = async () => {
+    // Validación básica de campos
     if (!email || !password || (!isLogin && !fullName)) {
       Alert.alert('Error', 'Por favor completa todos los campos');
+      return;
+    }
+    
+    // Validación de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
+      return;
+    }
+    
+    // Validación de password
+    if (password.length < 6) {
+      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
       return;
     }
     setLoading(true);
