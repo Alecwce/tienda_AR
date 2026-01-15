@@ -1,6 +1,7 @@
 // src/components/ui/ProductCard.tsx - Premium Editorial Version
 import { useUserStore } from '@/src/store';
 import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme/ThemeContext';
 import type { Product } from '@/src/types';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -40,6 +41,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   index = 0,
   variant = 'compact',
 }) => {
+  const { colors } = useTheme();
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
   const { toggleFavorite, isFavorite } = useUserStore();
   const favorited = isFavorite(product.id);
   
@@ -124,7 +127,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
               <Ionicons
                 name={favorited ? 'heart' : 'heart-outline'}
                 size={18}
-                color={favorited ? theme.colors.secondary : '#FFF'}
+                color={favorited ? colors.secondary : '#FFF'}
               />
             </View>
           </Pressable>
@@ -149,7 +152,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   wrapper: {
     width: COLUMN_WIDTH,
     marginBottom: theme.spacing.md,
@@ -162,11 +165,11 @@ const styles = StyleSheet.create({
     height: 350,
   },
   container: {
-    backgroundColor: theme.colors.surface,
+    backgroundColor: colors.surface,
     borderRadius: theme.radius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: colors.border,
   },
   imageContainer: {
     width: '100%',
@@ -194,7 +197,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   newBadge: {
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 8,
     paddingVertical: 4,
     borderRadius: 4,
@@ -222,14 +225,14 @@ const styles = StyleSheet.create({
   },
   brand: {
     fontSize: 10,
-    color: theme.colors.textMuted,
+    color: colors.textMuted,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 2,
   },
   name: {
     fontSize: 14,
-    color: theme.colors.text,
+    color: colors.text,
     fontWeight: '600',
     marginBottom: 6,
   },
@@ -240,12 +243,12 @@ const styles = StyleSheet.create({
   },
   price: {
     fontSize: 15,
-    color: theme.colors.text,
+    color: colors.text,
     fontWeight: '700',
   },
   discount: {
     fontSize: 11,
-    color: theme.colors.secondary,
+    color: colors.secondary,
     fontWeight: '600',
   },
 });

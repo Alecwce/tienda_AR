@@ -1,5 +1,6 @@
 // src/components/ui/CategoryChip.tsx - Animated filter chip
 import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme/ThemeContext';
 import * as Haptics from 'expo-haptics';
 import React from 'react';
 import { Pressable, StyleSheet } from 'react-native';
@@ -21,24 +22,25 @@ interface CategoryChipProps {
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
 
 export function CategoryChip({ label, selected, onPress, icon }: CategoryChipProps) {
+  const { colors } = useTheme();
   const scale = useSharedValue(1);
   const progress = useSharedValue(selected ? 1 : 0);
 
   React.useEffect(() => {
-    progress.value = withTiming(selected ? 1 : 0, { duration: theme.animation.normal });
+    progress.value = withTiming(selected ? 1 : 0, { duration: 200 });
   }, [selected]);
 
   const containerAnimatedStyle = useAnimatedStyle(() => {
     const backgroundColor = interpolateColor(
       progress.value,
       [0, 1],
-      [theme.colors.surface, theme.colors.primary]
+      [colors.surface, colors.primary]
     );
 
     const borderColor = interpolateColor(
       progress.value,
       [0, 1],
-      [theme.colors.glassBorder, theme.colors.primary]
+      [colors.glassBorder, colors.primary]
     );
 
     return {
@@ -46,17 +48,17 @@ export function CategoryChip({ label, selected, onPress, icon }: CategoryChipPro
       borderColor,
       transform: [{ scale: scale.value }],
     };
-  });
+  }, [colors]);
 
   const textAnimatedStyle = useAnimatedStyle(() => {
     const color = interpolateColor(
       progress.value,
       [0, 1],
-      [theme.colors.textSecondary, theme.colors.text]
+      [colors.textSecondary, colors.text]
     );
 
     return { color };
-  });
+  }, [colors]);
 
   const handlePressIn = () => {
     scale.value = withSpring(0.95, theme.animation.spring);
