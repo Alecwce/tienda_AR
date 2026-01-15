@@ -206,7 +206,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
         });
       }
     } catch (error) {
-      console.error('Error loading products:', error);
+      if (__DEV__) {
+        console.error('Error loading products:', error);
+      }
       set({
         error: error instanceof Error ? error.message : 'Error cargando productos',
         isLoading: false,
