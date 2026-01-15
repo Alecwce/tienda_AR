@@ -1,4 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { storage } from '@/src/lib/mmkv';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { useColorScheme } from 'react-native';
 import { darkColors, lightColors } from './index';
@@ -30,19 +30,19 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     loadTheme();
   }, []);
 
-  const loadTheme = async () => {
+  const loadTheme = () => {
     try {
-      const savedMode = await AsyncStorage.getItem('themeMode');
+      const savedMode = storage.getString('themeMode');
       if (savedMode) setMode(savedMode as ThemeMode);
     } catch (e) {
       if (__DEV__) console.error('Failed to load theme', e);
     }
   };
 
-  const updateMode = async (newMode: ThemeMode) => {
+  const updateMode = (newMode: ThemeMode) => {
     setMode(newMode);
     try {
-      await AsyncStorage.setItem('themeMode', newMode);
+      storage.set('themeMode', newMode);
     } catch (e) {
       if (__DEV__) console.error('Failed to save theme', e);
     }

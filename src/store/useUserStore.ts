@@ -1,9 +1,8 @@
 import { supabase } from '@/src/lib/supabase';
 import type { User, UserMeasurements, UserStats } from '@/src/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 interface UserState {
   // User data
@@ -193,7 +192,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'virtual-vogue-user',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: zustandStorage,
       partialize: (state) => ({
         user: state.user,
         measurements: state.measurements,

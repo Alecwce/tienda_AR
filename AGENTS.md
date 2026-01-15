@@ -31,6 +31,8 @@ Tienda AR es una aplicación de e-commerce con realidad aumentada para probarse 
 | `expo-router`        | Navegación con Expo Router v6 (tabs, stacks, modals)          | [SKILL.md](.agent/skills/expo-router/SKILL.md)        |
 | `zustand`            | State management con Zustand 5 y persist middleware           | [SKILL.md](.agent/skills/zustand/SKILL.md)            |
 | `react-native-theme` | Sistema de temas, dark mode, tokens de diseño                 | [SKILL.md](.agent/skills/react-native-theme/SKILL.md) |
+| `mmkv-storage`       | Storage ultra-rápido con MMKV (migración desde AsyncStorage)  | [SKILL.md](.agent/skills/mmkv-storage/SKILL.md)       |
+| `expo-sqlite`        | Base de datos SQLite local con sync offline-first             | [SKILL.md](.agent/skills/expo-sqlite/SKILL.md)        |
 | `project-audit`      | Auditoría de seguridad, calidad, UI/UX, performance y commits | [SKILL.md](.agent/skills/project-audit/SKILL.md)      |
 
 ---
@@ -47,6 +49,10 @@ Cuando realices estas acciones, **SIEMPRE** invoca la skill correspondiente prim
 | Manejar estado global o carrito           | `zustand`            |
 | Modificar colores, tipografía o espaciado | `react-native-theme` |
 | Implementar dark/light mode               | `react-native-theme` |
+| Migrar a MMKV o configurar storage        | `mmkv-storage`       |
+| Persistir datos con Zustand               | `mmkv-storage`       |
+| Implementar base de datos local           | `expo-sqlite`        |
+| Sincronizar datos offline                 | `expo-sqlite`        |
 | Configurar Auth, DB o Storage             | `supabase-workflow`  |
 | Escribir migraciones SQL                  | `supabase-workflow`  |
 | Implementar RLS o políticas               | `supabase-workflow`  |

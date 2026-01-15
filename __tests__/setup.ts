@@ -2,20 +2,50 @@
 
 import { vi } from 'vitest';
 
-// Mock AsyncStorage
-const mockAsyncStorage = {
-  getItem: vi.fn(async (key: string) => null),
-  setItem: vi.fn(async (key: string, value: string) => undefined),
-  removeItem: vi.fn(async (key: string) => undefined),
-  clear: vi.fn(async () => undefined),
-  getAllKeys: vi.fn(async () => []),
-  multiGet: vi.fn(async (keys: string[]) => []),
-  multiSet: vi.fn(async (keyValuePairs: [string, string][]) => undefined),
-  multiRemove: vi.fn(async (keys: string[]) => undefined),
-};
+//  Mock MMKV Storage - debe estar hoisted
+const { MockMMKV } = vi.hoisted(() => {
+  class MockMMKV {
+    private storage = new Map<string, string>();
+    
+    set(key: string, value: string | number | boolean) {
+      this.storage.set(key, String(value));
+    }
+    
+    getString(key: string) {
+      return this.storage.get(key) ?? null;
+    }
+    
+    getNumber(key: string) {
+      const value = this.storage.get(key);
+      return value ? Number(value) : undefined;
+    }
+    
+    getBoolean(key: string) {
+      return this.storage.get(key) === 'true';
+    }
+    
+    delete(key: string) {
+      this.storage.delete(key);
+    }
+    
+    getAllKeys() {
+      return Array.from(this.storage.keys());
+    }
+    
+    clearAll() {
+      this.storage.clear();
+    }
+    
+    contains(key: string) {
+      return this.storage.has(key);
+    }
+  }
+  
+  return { MockMMKV };
+});
 
-vi.mock('@react-native-async-storage/async-storage', () => ({
-  default: mockAsyncStorage,
+vi.mock('react-native-mmkv', () => ({
+  MMKV: MockMMKV,
 }));
 
 // Mock expo-image

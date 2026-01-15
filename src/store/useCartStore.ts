@@ -1,8 +1,8 @@
-// src/store/useCartStore.ts - Cart state management with Zustand
+// src/store/useCartStore.ts - Cart state management with Zustand + MMKV
+import { zustandStorage } from '@/src/lib/mmkv';
 import type { CartItem, Product, Size } from '@/src/types';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { create } from 'zustand';
-import { createJSONStorage, persist } from 'zustand/middleware';
+import { persist } from 'zustand/middleware';
 
 interface CartState {
   items: CartItem[];
@@ -138,7 +138,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'virtual-vogue-cart',
-      storage: createJSONStorage(() => AsyncStorage),
+      storage: zustandStorage,
       partialize: (state) => ({
         items: state.items,
         promoCode: state.promoCode,
