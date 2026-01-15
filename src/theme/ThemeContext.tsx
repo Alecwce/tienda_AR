@@ -5,10 +5,13 @@ import { darkColors, lightColors } from './index';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
+// Tipo unión de ambos esquemas de color
+export type ThemeColors = typeof lightColors | typeof darkColors;
+
 interface ThemeContextType {
   mode: ThemeMode;
   setMode: (mode: ThemeMode) => void;
-  colors: typeof darkColors;
+  colors: ThemeColors;
   isDark: boolean;
 }
 
@@ -32,7 +35,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       const savedMode = await AsyncStorage.getItem('themeMode');
       if (savedMode) setMode(savedMode as ThemeMode);
     } catch (e) {
-      console.error('Failed to load theme', e);
+      if (__DEV__) console.error('Failed to load theme', e);
     }
   };
 
@@ -41,12 +44,12 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     try {
       await AsyncStorage.setItem('themeMode', newMode);
     } catch (e) {
-      console.error('Failed to save theme', e);
+      if (__DEV__) console.error('Failed to save theme', e);
     }
   };
 
   const isDark = mode === 'system' ? systemScheme === 'dark' : mode === 'dark';
-  const colors = isDark ? darkColors : (lightColors as unknown as typeof darkColors);
+  const colors: ThemeColors = isDark ? darkColors : lightColors;
 
   return (
     <ThemeContext.Provider value={{ mode, setMode: updateMode, colors, isDark }}>
