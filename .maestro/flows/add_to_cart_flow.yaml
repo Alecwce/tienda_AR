@@ -1,0 +1,37 @@
+# .maestro/flows/add_to_cart_flow.yaml - E2E test para agregar al carrito
+
+appId: com.virtualvogue.app
+---
+# Launch app (asumiendo ya loggeado)
+- launchApp
+
+# Esperar home screen
+- assertVisible: "Catálogo"
+
+# Navegar al catálogo
+- tapOn:
+    id: "tab-catalog"
+
+# Esperar productos
+- assertVisible:
+    text: "resultados"
+    timeout: 5000
+
+# Tap en primer producto
+- tapOn:
+    index: 0
+    className: "ProductCard"
+
+# Esperar detalles del producto
+- assertVisible: "Agregar al carrito"
+
+# Seleccionar talla
+- tapOn: "M"
+
+# Agregar al carrito
+- tapOn: "Agregar al carrito"
+
+# Verificar badge del carrito
+- assertVisible:
+    id: "cart-badge"
+    timeout: 3000

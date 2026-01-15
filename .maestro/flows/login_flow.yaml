@@ -1,0 +1,27 @@
+# .maestro/flows/login_flow.yaml - E2E test para login
+# Mejora #25: Setup básico de Maestro E2E tests
+
+appId: com.virtualvogue.app
+---
+# Navegar a la pantalla de login
+- launchApp
+
+# Verificar que estamos en login
+- assertVisible: "Acceder"
+
+# Ingresar credenciales
+- tapOn:
+    text: "CORREO ELECTRÓNICO"
+- inputText: "test@virtualvogue.com"
+
+- tapOn:
+    text: "CONTRASEÑA"
+- inputText: "testpassword123"
+
+# Tap en el botón de login
+- tapOn: "INGRESAR"
+
+# Esperar navegación
+- assertVisible:
+    text: "Catálogo"
+    timeout: 10000
