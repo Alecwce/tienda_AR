@@ -65,6 +65,23 @@ export default function HomeScreen() {
     );
   }, []);
 
+  // Prefetch de imágenes de productos featured
+  React.useEffect(() => {
+    if (featuredProducts.length > 0) {
+      // Prefetch primeras 6 imágenes de productos featured
+      const imagesToPrefetch = featuredProducts
+        .slice(0, 6)
+        .map(p => p.images[0])
+        .filter(Boolean);
+
+      imagesToPrefetch.forEach(imageUrl => {
+        Image.prefetch(imageUrl).catch(err => {
+          if (__DEV__) console.log('Image prefetch failed:', err);
+        });
+      });
+    }
+  }, [featuredProducts]);
+
   const floatingStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: interpolate(floatValue.value, [0, 1], [0, -10]) }],
   }));
