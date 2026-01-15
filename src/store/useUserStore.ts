@@ -87,10 +87,12 @@ export const useUserStore = create<UserState>()(
                  user: {
                      id: profile.id,
                      email: profile.email || '',
-                     fullName: profile.full_name || '',
-                     avatarUrl: profile.avatar_url,
-                     // Merge DB stats/favorites if implemented
-                 } as any
+                     name: profile.full_name || '',
+                     avatar: profile.avatar_url,
+                     favorites: [],
+                     history: [],
+                     createdAt: profile.created_at || new Date().toISOString(),
+                 }
              });
           }
         }
