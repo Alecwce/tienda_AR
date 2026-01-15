@@ -1,3 +1,4 @@
+import { loginSchema, registerSchema } from '@/src/lib/validations/auth';
 import { useUserStore } from '@/src/store/useUserStore';
 import { theme } from '@/src/theme';
 import { Feather } from '@expo/vector-icons';
@@ -147,26 +148,28 @@ export default function LoginScreen() {
   const [isLogin, setIsLogin] = useState(true);
 
   const handleAuth = async () => {
-    // Validación básica de campos
-    if (!email || !password || (!isLogin && !fullName)) {
-      Alert.alert('Error', 'Por favor completa todos los campos');
-      return;
-    }
-    
-    // Validación de email
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      Alert.alert('Error', 'Por favor ingresa un correo electrónico válido');
-      return;
-    }
-    
-    // Validación de password
-    if (password.length < 6) {
-      Alert.alert('Error', 'La contraseña debe tener al menos 6 caracteres');
-      return;
-    }
     setLoading(true);
     try {
+      // Validación con Zod
+      if (isLogin) {
+        const result = loginSchema.safeParse({ email, password });
+        if (!result.success) {
+          const firstError = result.error.issues[0];
+          Alert.alert('Error de validación', firstError.message);
+          setLoading(false);
+          return;
+        }
+      } else {
+        const result = registerSchema.safeParse({ email, password, fullName });
+        if (!result.success) {
+          const firstError = result.error.issues[0];
+          Alert.alert('Error de validación', firstError.message);
+          setLoading(false);
+          return;
+        }
+      }
+
+      // Autenticación
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) {
