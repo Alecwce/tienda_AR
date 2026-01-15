@@ -12,19 +12,22 @@ import { theme } from '@/src/theme';
 import type { Product, ProductCategory } from '@/src/types';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import {
     Dimensions,
     FlatList,
     Pressable,
+    RefreshControl,
     StyleSheet,
     Text,
-    View,
+    View
 } from 'react-native';
 import Animated, { FadeIn, FadeInDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const COLUMN_WIDTH = (SCREEN_WIDTH - 48) / 2;
+const ITEM_HEIGHT = COLUMN_WIDTH * 1.35; // Approx height with padding
 
 const CATEGORY_OPTIONS: { id: ProductCategory | 'all'; label: string }[] = [
   { id: 'all', label: 'Todos' },
@@ -40,6 +43,7 @@ export default function CatalogScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ category?: string }>();
+  const [refreshing, setRefreshing] = useState(false);
 
   const {
     filteredProducts,
@@ -47,6 +51,7 @@ export default function CatalogScreen() {
     filters,
     setSearchQuery,
     setFilters,
+    loadProducts,
   } = useProductStore();
   
   const { colors } = useTheme();
@@ -62,6 +67,12 @@ export default function CatalogScreen() {
 
   const selectedCategory = filters.category || 'all';
 
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await loadProducts();
+    setRefreshing(false);
+  }, [loadProducts]);
+
   const handleCategorySelect = useCallback((categoryId: ProductCategory | 'all') => {
     if (categoryId === 'all') {
       setFilters({ category: undefined });
@@ -69,6 +80,15 @@ export default function CatalogScreen() {
       setFilters({ category: categoryId });
     }
   }, [setFilters]);
+
+  const getItemLayout = useCallback(
+    (_data: any, index: number) => ({
+      length: ITEM_HEIGHT,
+      offset: ITEM_HEIGHT * Math.floor(index / 2), // 2 columns
+      index,
+    }),
+    []
+  );
 
   const renderProduct = useCallback(({ item, index }: { item: Product; index: number }) => (
     <ProductCard
@@ -149,6 +169,15 @@ export default function CatalogScreen() {
         initialNumToRender={6}
         maxToRenderPerBatch={6}
         windowSize={5}
+        getItemLayout={getItemLayout}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={colors.primary}
+            colors={[colors.primary]}
+          />
+        }
         ListHeaderComponent={ListHeader}
         ListEmptyComponent={
           <Animated.View entering={FadeIn.delay(400)} style={styles.emptyState}>
