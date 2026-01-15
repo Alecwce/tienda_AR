@@ -1,5 +1,6 @@
 // app/_layout.tsx - Root layout for Virtual Vogue
-import { useProductStore } from '@/src/store';
+import { supabase } from '@/src/lib/supabase';
+import { useProductStore, useUserStore } from '@/src/store';
 import { theme } from '@/src/theme';
 import { ThemeProvider } from '@/src/theme/ThemeContext';
 import { useFonts } from 'expo-font';
@@ -36,6 +37,17 @@ export default function RootLayout() {
       SplashScreen.hideAsync();
     }
   }, [fontsLoaded]);
+
+  // Auth session listener
+  useEffect(() => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (_event, session) => {
+        useUserStore.getState().setSession(session);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   if (!fontsLoaded) {
     return null;
