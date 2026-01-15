@@ -1,5 +1,6 @@
-// src/lib/mmkv.ts - MMKV storage configuration
+import { MMKV } from "react-native-mmkv";
 
+// src/lib/mmkv.ts - MMKV storage configuration
 
 /**
  * Storage principal para datos generales de la app
@@ -75,7 +76,7 @@ export const mmkvUtils = {
   
   // Debug: imprimir todo
   logAll: () => {
-    if (__DEV__) {
+    if (typeof __DEV__ !== 'undefined' && __DEV__) {
       const keys = storage.getAllKeys();
       console.log('📦 MMKV Storage Contents:');
       keys.forEach((key: string) => {

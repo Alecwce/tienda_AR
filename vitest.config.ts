@@ -12,6 +12,7 @@ export default defineConfig({
   resolve: {
     alias: {
       '@': resolve(__dirname, './'),
+      'react-native-mmkv': resolve(__dirname, './__mocks__/react-native-mmkv.ts'),
     },
   },
 });

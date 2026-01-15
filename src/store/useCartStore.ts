@@ -2,7 +2,7 @@
 import { zustandStorage } from '@/src/lib/mmkv';
 import type { CartItem, Product, Size } from '@/src/types';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface CartState {
   items: CartItem[];
@@ -138,7 +138,7 @@ export const useCartStore = create<CartState>()(
     }),
     {
       name: 'virtual-vogue-cart',
-      storage: zustandStorage,
+      storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         items: state.items,
         promoCode: state.promoCode,

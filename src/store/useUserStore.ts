@@ -1,8 +1,9 @@
+import { zustandStorage } from '@/src/lib/mmkv';
 import { supabase } from '@/src/lib/supabase';
 import type { User, UserMeasurements, UserStats } from '@/src/types';
 import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
 
 interface UserState {
   // User data
@@ -192,7 +193,7 @@ export const useUserStore = create<UserState>()(
     }),
     {
       name: 'virtual-vogue-user',
-      storage: zustandStorage,
+      storage: createJSONStorage(() => zustandStorage),
       partialize: (state) => ({
         user: state.user,
         measurements: state.measurements,

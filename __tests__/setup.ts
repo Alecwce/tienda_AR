@@ -2,50 +2,32 @@
 
 import { vi } from 'vitest';
 
-//  Mock MMKV Storage - debe estar hoisted
-const { MockMMKV } = vi.hoisted(() => {
-  class MockMMKV {
-    private storage = new Map<string, string>();
-    
-    set(key: string, value: string | number | boolean) {
-      this.storage.set(key, String(value));
-    }
-    
-    getString(key: string) {
-      return this.storage.get(key) ?? null;
-    }
-    
-    getNumber(key: string) {
-      const value = this.storage.get(key);
-      return value ? Number(value) : undefined;
-    }
-    
-    getBoolean(key: string) {
-      return this.storage.get(key) === 'true';
-    }
-    
-    delete(key: string) {
-      this.storage.delete(key);
-    }
-    
-    getAllKeys() {
-      return Array.from(this.storage.keys());
-    }
-    
-    clearAll() {
-      this.storage.clear();
-    }
-    
-    contains(key: string) {
-      return this.storage.has(key);
-    }
-  }
-  
-  return { MockMMKV };
-});
+// Dummy env vars for tests
+process.env.EXPO_PUBLIC_SUPABASE_URL = 'https://example.supabase.co';
+process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY = 'dummy-key';
 
-vi.mock('react-native-mmkv', () => ({
-  MMKV: MockMMKV,
+// Mock MMKV - usa el manual mock en __mocks__/react-native-mmkv.ts
+vi.mock('react-native-mmkv');
+
+// Mock Supabase
+vi.mock('@supabase/supabase-js', () => ({
+  createClient: vi.fn(() => ({
+    auth: {
+      getSession: vi.fn(),
+      onAuthStateChange: vi.fn(() => ({ data: { subscription: { unsubscribe: vi.fn() } } })),
+      signInWithPassword: vi.fn(),
+      signUp: vi.fn(),
+      signOut: vi.fn(),
+    },
+    from: vi.fn(() => ({
+      select: vi.fn().mockReturnThis(),
+      insert: vi.fn().mockReturnThis(),
+      update: vi.fn().mockReturnThis(),
+      delete: vi.fn().mockReturnThis(),
+      eq: vi.fn().mockReturnThis(),
+      single: vi.fn().mockReturnThis(),
+    })),
+  })),
 }));
 
 // Mock expo-image
@@ -71,8 +53,7 @@ vi.mock('react-native', async () => {
 });
 
 // Global test utilities
-declare global {
-  var __DEV__: boolean;
+// Mock global __DEV__ if not already defined
+if (typeof (global as any).__DEV__ === 'undefined') {
+  (global as any).__DEV__ = true;
 }
-
-global.__DEV__ = true;
