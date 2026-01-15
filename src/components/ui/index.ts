@@ -4,4 +4,5 @@ export { CategoryChip } from './CategoryChip';
 export { GlassCard } from './GlassCard';
 export { ProductCard } from './ProductCard';
 export { SearchInput } from './SearchInput';
+export { ProductCardSkeleton, Skeleton, TextSkeleton } from './Skeleton';
 
