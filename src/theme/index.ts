@@ -1,51 +1,99 @@
 // src/theme/index.ts - Design System Premium "Elite"
 import { Platform } from 'react-native';
 
-export const theme = {
-  colors: {
-    // Brand Colors - High Fashion Aesthetic
-    primary: '#8B5CF6', // Soft Violet
-    secondary: '#D946EF', // Fuchsia
-    accent: '#F59E0B', // Amber Gold
-    
-    // Semantic Colors
-    success: '#10B981',
-    warning: '#F59E0B',
-    error: '#EF4444',
-    info: '#3B82F6',
+// Brand Colors
+const brand = {
+  primary: '#8B5CF6',
+  secondary: '#D946EF',
+  accent: '#F59E0B',
+};
 
-    // Neutral Palette - Deep Space
-    background: '#000000', // Pure Black for OLED
-    surface: '#0A0A0A', // Near Black
-    surfaceElevated: '#121212', // Lighter Surface
-    
-    // Text
-    text: '#FFFFFF',
-    textSecondary: '#A1A1AA', // Zinc 400
-    textMuted: '#71717A', // Zinc 500
-    textDimmed: '#52525B', // Zinc 600
+export const darkColors = {
+  ...brand,
+  success: '#10B981',
+  warning: '#F59E0B',
+  error: '#EF4444',
+  info: '#3B82F6',
 
-    // UI Elements
-    border: '#27272A', // Zinc 800
-    glass: 'rgba(255, 255, 255, 0.04)',
-    glassBorder: 'rgba(255, 255, 255, 0.08)',
-    glassHighlight: 'rgba(255, 255, 255, 0.12)',
+  background: '#000000',
+  surface: '#0A0A0A',
+  surfaceElevated: '#121212',
+  
+  text: '#FFFFFF',
+  textSecondary: '#A1A1AA',
+  textMuted: '#71717A',
+  textDimmed: '#52525B',
 
-    // Special
-    gradient: {
-      primary: ['#8B5CF6', '#D946EF', '#F43F5E'] as const, // 3-point gradient
-      sunset: ['#F59E0B', '#F43F5E', '#D946EF'] as const,
-      ocean: ['#3B82F6', '#2DD4BF', '#06B6D4'] as const,
-      dark: ['#121212', '#000000'] as const,
-      glass: ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.02)'] as const,
-    },
-    
-    glow: {
-      primary: 'rgba(139, 92, 246, 0.5)',
-      secondary: 'rgba(217, 70, 239, 0.5)',
-      accent: 'rgba(245, 158, 11, 0.5)',
-    }
+  border: '#27272A',
+  glass: 'rgba(255, 255, 255, 0.04)',
+  glassBorder: 'rgba(255, 255, 255, 0.08)',
+  glassHighlight: 'rgba(255, 255, 255, 0.12)',
+
+  gradient: {
+    primary: ['#8B5CF6', '#D946EF', '#F43F5E'] as const,
+    sunset: ['#F59E0B', '#F43F5E', '#D946EF'] as const,
+    ocean: ['#3B82F6', '#2DD4BF', '#06B6D4'] as const,
+    dark: ['#121212', '#000000'] as const,
+    glass: ['rgba(255, 255, 255, 0.1)', 'rgba(255, 255, 255, 0.02)'] as const,
   },
+  
+  glow: {
+    primary: 'rgba(139, 92, 246, 0.5)',
+    secondary: 'rgba(217, 70, 239, 0.5)',
+    accent: 'rgba(245, 158, 11, 0.5)',
+  },
+  
+  // Specific Auth Theme (User Provided Exact Hexes)
+  auth: {
+    background: '#101214',      // --color-bg
+    surface: '#161A1D',         // --color-surface
+    muted: '#1D2125',           // --color-muted-surface
+    border: '#2C333A',          // --color-border
+    text: '#C7D1DB',            // --color-text-primary
+    secondary: '#596773',       // --color-text-secondary
+    heading: '#DEE4EA',         // --color-heading
+    bg2: '#C7D1DB',             // --color-bg-2
+  }
+};
+
+export const lightColors = {
+  ...brand,
+  success: '#059669',
+  warning: '#D97706',
+  error: '#DC2626',
+  info: '#2563EB',
+
+  background: '#FFFFFF',
+  surface: '#F8FAFC', // Slate 50
+  surfaceElevated: '#FFFFFF',
+  
+  text: '#09090B', // Zinc 950
+  textSecondary: '#52525B', // Zinc 600
+  textMuted: '#71717A', // Zinc 500
+  textDimmed: '#A1A1AA', // Zinc 400
+
+  border: '#E2E8F0', // Slate 200
+  glass: 'rgba(0, 0, 0, 0.03)',
+  glassBorder: 'rgba(0, 0, 0, 0.06)',
+  glassHighlight: 'rgba(0, 0, 0, 0.08)',
+
+  gradient: {
+    primary: ['#8B5CF6', '#D946EF', '#F43F5E'] as const, // Lighter gradient
+    sunset: ['#F59E0B', '#F43F5E', '#D946EF'] as const,
+    ocean: ['#3B82F6', '#06B6D4', '#2DD4BF'] as const,
+    dark: ['#F8FAFC', '#FFFFFF', '#F1F5F9'] as const,
+    glass: ['rgba(255, 255, 255, 0.8)', 'rgba(255, 255, 255, 0.4)'] as const,
+  },
+
+  glow: {
+    primary: 'rgba(139, 92, 246, 0.2)',
+    secondary: 'rgba(217, 70, 239, 0.2)',
+    accent: 'rgba(245, 158, 11, 0.2)',
+  }
+};
+
+export const theme = {
+  colors: darkColors, // Default fallback
 
   spacing: {
     xs: 4,
