@@ -1,5 +1,5 @@
 // src/store/useProductStore.ts - Product state management with Zustand
-import { mockProducts } from '@/src/data/products';
+import { supabase } from '@/src/lib/supabase';
 import type { FilterOptions, Product, ProductCategory, SortOption } from '@/src/types';
 import { create } from 'zustand';
 
@@ -163,20 +163,50 @@ export const useProductStore = create<ProductState>((set, get) => ({
   loadProducts: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Simular delay de API
-      await new Promise((resolve) => setTimeout(resolve, 500));
+      const { data, error } = await supabase
+        .from('products')
+        .select('*');
 
-      // Por ahora usamos mock data, después conectamos Supabase
-      const products = mockProducts;
-      const featured = products.filter((p) => p.isFeatured);
+      if (error) throw error;
 
-      set({
-        products,
-        featuredProducts: featured,
-        filteredProducts: filterProducts(products, get().filters, get().searchQuery, get().sortBy),
-        isLoading: false,
-      });
+      if (data) {
+        const products: Product[] = data.map((item: any) => ({
+          id: item.id,
+          name: item.name,
+          brand: item.brand,
+          price: Number(item.price),
+          originalPrice: item.original_price ? Number(item.original_price) : undefined,
+          discount: item.original_price
+            ? Math.round(((Number(item.original_price) - Number(item.price)) / Number(item.original_price)) * 100)
+            : undefined,
+          description: item.description || '',
+          category: item.category as ProductCategory,
+          images: item.images || [],
+          // Map DB optional fields to Frontend Types
+          arOverlayUrl: item.ar_overlay_url || item.model_3d_url || undefined,
+          hasAR: item.has_ar || false,
+          isNew: item.is_new || false,
+          isFeatured: item.is_featured || false,
+          rating: Number(item.rating) || 0,
+          reviewCount: item.review_count || 0,
+          stock: item.stock || 0,
+          sizes: item.sizes || [],
+          colors: item.colors || [],
+          tags: item.tags || [],
+          createdAt: item.created_at,
+        }));
+
+        const featured = products.filter((p) => p.isFeatured);
+
+        set({
+          products,
+          featuredProducts: featured,
+          filteredProducts: filterProducts(products, get().filters, get().searchQuery, get().sortBy),
+          isLoading: false,
+        });
+      }
     } catch (error) {
+      console.error('Error loading products:', error);
       set({
         error: error instanceof Error ? error.message : 'Error cargando productos',
         isLoading: false,

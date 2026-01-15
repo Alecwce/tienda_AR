@@ -1,6 +1,7 @@
-// src/store/useUserStore.ts - User state management with Zustand
+import { supabase } from '@/src/lib/supabase';
 import type { User, UserMeasurements, UserStats } from '@/src/types';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Session } from '@supabase/supabase-js';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -14,8 +15,14 @@ interface UserState {
   stats: UserStats;
 
   // Actions
+  session: Session | null;
+
+  // Actions
+  setSession: (session: Session | null) => void;
+  signIn: (email: string, password: string) => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string) => Promise<{ error: any }>;
+  signOut: () => Promise<void>;
   setUser: (user: User | null) => void;
-  logout: () => void;
 
   // Measurements
   setMeasurements: (measurements: UserMeasurements) => void;
@@ -45,6 +52,7 @@ const defaultStats: UserStats = {
 export const useUserStore = create<UserState>()(
   persist(
     (set, get) => ({
+      session: null,
       user: null,
       isAuthenticated: false,
       measurements: null,
@@ -52,19 +60,79 @@ export const useUserStore = create<UserState>()(
       history: [],
       stats: defaultStats,
 
+      setSession: (session) => {
+        set({ session, isAuthenticated: !!session });
+        if (session?.user) {
+            // Load extra profile data if needed
+        }
+      },
+
+      signIn: async (email, password) => {
+        const { data, error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (data.session) {
+          get().setSession(data.session);
+          
+          // Fetch profile
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', data.session.user.id)
+            .single();
+            
+          if (profile) {
+             set({
+                 user: {
+                     id: profile.id,
+                     email: profile.email || '',
+                     fullName: profile.full_name || '',
+                     avatarUrl: profile.avatar_url,
+                     // Merge DB stats/favorites if implemented
+                 } as any
+             });
+          }
+        }
+        return { error };
+      },
+
+      signUp: async (email, password, fullName) => {
+        const { data, error } = await supabase.auth.signUp({
+          email,
+          password,
+          options: {
+            data: {
+              full_name: fullName,
+            },
+          },
+        });
+        // Auto sign-in logic usually handled by supabase if email confirm is off
+        if (data.session) {
+             get().setSession(data.session);
+        }
+        return { error };
+      },
+
+      signOut: async () => {
+        await supabase.auth.signOut();
+        set({
+           session: null,
+           user: null, 
+           isAuthenticated: false,
+           // Keep local preferences? Maybe clear sensitive data
+           measurements: null,
+           favorites: [],
+           history: []
+        });
+      },
+
+      // Legacy/Helper setter
       setUser: (user) => {
         set({
           user,
           isAuthenticated: !!user,
           favorites: user?.favorites || [],
-        });
-      },
-
-      logout: () => {
-        set({
-          user: null,
-          isAuthenticated: false,
-          // Mantener measurements y history locales
         });
       },
 
