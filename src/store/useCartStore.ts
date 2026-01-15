@@ -16,7 +16,7 @@ interface CartState {
   total: number;
 
   // Actions
-  addItem: (product: Product, size: Size, color: string, quantity?: number) => void;
+  addItem: (product: Product, size: Size, color: string, quantity?: number) => boolean;
   removeItem: (productId: string, size: Size, color: string) => void;
   updateQuantity: (productId: string, size: Size, color: string, quantity: number) => void;
   clearCart: () => void;
@@ -55,20 +55,31 @@ export const useCartStore = create<CartState>()(
       total: 0,
 
       addItem: (product, size, color, quantity = 1) => {
+        // Validar stock disponible
+        if (product.stock !== undefined && product.stock < quantity) {
+          return false; // No hay suficiente stock
+        }
+
         const items = [...get().items];
         const existingIndex = items.findIndex(
           (item) =>
             item.product.id === product.id && item.size === size && item.color === color
         );
 
+        // Validar que no exceda el stock con items existentes
         if (existingIndex >= 0) {
-          items[existingIndex].quantity += quantity;
+          const newQuantity = items[existingIndex].quantity + quantity;
+          if (product.stock !== undefined && newQuantity > product.stock) {
+            return false;
+          }
+          items[existingIndex].quantity = newQuantity;
         } else {
           items.push({ product, size, color, quantity });
         }
 
         const totals = calculateTotals(items, get().promoDiscount);
         set({ items, ...totals });
+        return true;
       },
 
       removeItem: (productId, size, color) => {

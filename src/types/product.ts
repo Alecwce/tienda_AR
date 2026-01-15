@@ -16,6 +16,7 @@ export interface Product {
   hasAR: boolean;
   rating: number;
   reviewCount: number;
+  stock?: number;
   isNew?: boolean;
   isFeatured?: boolean;
   tags: string[];
