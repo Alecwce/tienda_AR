@@ -122,7 +122,13 @@ export const ProductCard: React.FC<ProductCardProps> = ({
           </View>
 
           {/* Favorite Button */}
-          <Pressable style={styles.favoriteBtn} onPress={handleToggleFavorite}>
+          <Pressable 
+            style={styles.favoriteBtn} 
+            onPress={handleToggleFavorite}
+            accessibilityLabel={favorited ? 'Quitar de favoritos' : 'Agregar a favoritos'}
+            accessibilityRole="button"
+            accessibilityState={{ checked: favorited }}
+          >
             <View style={[styles.favoriteBlur, { backgroundColor: 'rgba(0,0,0,0.5)' }]}>
               <Ionicons
                 name={favorited ? 'heart' : 'heart-outline'}
