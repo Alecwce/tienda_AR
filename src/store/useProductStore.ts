@@ -24,7 +24,7 @@ interface ProductState {
   setFilters: (filters: Partial<FilterOptions>) => void;
   clearFilters: () => void;
   setSortBy: (sort: SortOption) => void;
-  loadProducts: () => Promise<void>;
+  loadProducts: (retryCount?: number) => Promise<void>;
   getProductById: (id: string) => Product | undefined;
 }
 
@@ -160,7 +160,9 @@ export const useProductStore = create<ProductState>((set, get) => ({
     });
   },
 
-  loadProducts: async () => {
+  loadProducts: async (retryCount = 0) => {
+    const MAX_RETRIES = 3;
+    
     set({ isLoading: true, error: null });
     try {
       const { data, error } = await supabase
@@ -209,6 +211,17 @@ export const useProductStore = create<ProductState>((set, get) => ({
       if (__DEV__) {
         console.error('Error loading products:', error);
       }
+      
+      // Retry con exponential backoff
+      if (retryCount < MAX_RETRIES) {
+        const delay = 1000 * Math.pow(2, retryCount); // 1s, 2s, 4s
+        if (__DEV__) {
+          console.log(`Retrying in ${delay}ms... (attempt ${retryCount + 1}/${MAX_RETRIES})`);
+        }
+        await new Promise(resolve => setTimeout(resolve, delay));
+        return get().loadProducts(retryCount + 1);
+      }
+      
       set({
         error: error instanceof Error ? error.message : 'Error cargando productos',
         isLoading: false,
