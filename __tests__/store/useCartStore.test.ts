@@ -45,13 +45,14 @@ describe('useCartStore', () => {
 
   describe('addItem', () => {
     it('should add a new item to cart', () => {
-      const store = useCartStore.getState();
-      const result = store.addItem(mockProduct, 'M' as Size, 'Black');
+      const result = useCartStore.getState().addItem(mockProduct, 'M' as Size, 'Black');
 
       expect(result).toBe(true);
-      expect(store.items.length).toBe(1);
-      expect(store.items[0].product.id).toBe('test-product-1');
-      expect(store.items[0].quantity).toBe(1);
+      
+      const updatedState = useCartStore.getState();
+      expect(updatedState.items.length).toBe(1);
+      expect(updatedState.items[0].product.id).toBe('test-product-1');
+      expect(updatedState.items[0].quantity).toBe(1);
     });
 
     it('should increment quantity if same item exists', () => {
@@ -121,15 +122,15 @@ describe('useCartStore', () => {
 
   describe('applyPromoCode', () => {
     it('should apply valid promo code', () => {
-      const store = useCartStore.getState();
-      store.addItem(mockProduct, 'M' as Size, 'Black');
+      // Primero agregar un item al carrito
+      useCartStore.getState().addItem(mockProduct, 'M' as Size, 'Black');
       
-      const result = useCartStore.getState().applyPromoCode('WELCOME10');
+      const result = useCartStore.getState().applyPromoCode('VIRTUAL10');
 
       expect(result).toBe(true);
       const updatedState = useCartStore.getState();
-      expect(updatedState.promoCode).toBe('WELCOME10');
-      expect(updatedState.promoDiscount).toBe(0.1);
+      expect(updatedState.promoCode).toBe('VIRTUAL10');
+      expect(updatedState.promoDiscount).toBe(10); // Porcentaje, no decimal
     });
 
     it('should reject invalid promo code', () => {
@@ -161,22 +162,23 @@ describe('useCartStore', () => {
 
   describe('calculateTotals', () => {
     it('should calculate correct subtotal', () => {
-      const store = useCartStore.getState();
-      store.addItem(mockProduct, 'M' as Size, 'Black', 2); // 199.99 * 2 = 399.98
+      useCartStore.getState().addItem(mockProduct, 'M' as Size, 'Black', 2); // 199.99 * 2 = 399.98
 
       const updatedState = useCartStore.getState();
       expect(updatedState.subtotal).toBeCloseTo(399.98, 2);
     });
 
     it('should apply discount correctly', () => {
-      const store = useCartStore.getState();
-      store.addItem(mockProduct, 'M' as Size, 'Black', 1); // 199.99
+      // Agregar item primero
+      useCartStore.getState().addItem(mockProduct, 'M' as Size, 'Black', 1); // 199.99
       
-      useCartStore.getState().applyPromoCode('SUMMER20'); // 20% off
+      // Aplicar cupón
+      const promoResult = useCartStore.getState().applyPromoCode('VOGUE20'); // 20% off
+      expect(promoResult).toBe(true);
 
       const updatedState = useCartStore.getState();
-      expect(updatedState.discount).toBeCloseTo(40, 0); // ~40
-      expect(updatedState.total).toBeCloseTo(159.99, 0); // ~160
+      expect(updatedState.discount).toBeCloseTo(40, 0); // 199.99 * 20% ≈ 40
+      expect(updatedState.total).toBeCloseTo(159.99, 0); // 199.99 - 40 ≈ 160
     });
   });
 });
