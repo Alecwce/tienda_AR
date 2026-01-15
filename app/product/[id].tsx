@@ -32,11 +32,32 @@ export default function ProductDetailScreen() {
   const { toggleFavorite, isFavorite, measurements } = useUserStore();
   
   const product = getProductById(id);
-  const [selectedColor, setSelectedColor] = useState(product?.colors[0].name || '');
+  
+  // Safe initialization with fallbacks
+  const [selectedColor, setSelectedColor] = useState('');
   const [selectedSize, setSelectedSize] = useState('');
   const [activeImageIndex, setActiveImageIndex] = useState(0);
 
-  if (!product) return null;
+  // Update effect to set defaults when product loads
+  React.useEffect(() => {
+    if (product) {
+      if (product.colors && product.colors.length > 0) {
+        setSelectedColor(product.colors[0].name);
+      }
+      if (product.sizes && product.sizes.length > 0) {
+        setSelectedSize(product.sizes[0]);
+      }
+    }
+  }, [product]);
+
+  if (!product) {
+      // Show loading or fallback instead of null to prevent white screen flash
+      return (
+        <View style={{ flex: 1, backgroundColor: theme.colors.background, justifyContent: 'center', alignItems: 'center'}}>
+            <Text style={{color: theme.colors.text}}>Cargando producto...</Text>
+        </View>
+      );
+  }
 
   const favorited = isFavorite(product.id);
 

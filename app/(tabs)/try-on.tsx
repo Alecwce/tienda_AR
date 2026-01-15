@@ -1,4 +1,4 @@
-// app/(tabs)/try-on.tsx - Premium Refined Version
+// app/(tabs)/try-on.tsx - Premium Refined Version with Smart Features
 import { useProductStore } from '@/src/store';
 import { theme } from '@/src/theme';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +8,7 @@ import * as Haptics from 'expo-haptics';
 import { Image } from 'expo-image';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useRef, useState } from 'react';
 import {
     ActivityIndicator,
     Dimensions,
@@ -19,11 +19,18 @@ import {
     Text,
     View,
 } from 'react-native';
-import { GestureHandlerRootView, PanGestureHandler, PinchGestureHandler } from 'react-native-gesture-handler';
+import { 
+  GestureHandlerRootView, 
+  PanGestureHandler, 
+  PinchGestureHandler, 
+  RotationGestureHandler, 
+  State 
+} from 'react-native-gesture-handler';
 import Animated, {
     FadeInUp,
     useAnimatedStyle,
-    useSharedValue
+    useSharedValue,
+    withSpring
 } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -33,26 +40,41 @@ export default function TryOnScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { productId } = useLocalSearchParams<{ productId?: string }>();
+  const cameraRef = useRef<CameraView>(null);
   
   const [permission, requestPermission] = useCameraPermissions();
   const { products } = useProductStore();
   
+  // State for Photo Studio Mode
+  const [capturedImage, setCapturedImage] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const arProducts = useMemo(() => products.filter(p => p.hasAR), [products]);
   const [selectedProduct, setSelectedProduct] = useState(
     productId ? arProducts.find(p => p.id === productId) : arProducts[0]
   );
+  
+  // Variant Selector State
+  const [selectedColorIndex, setSelectedColorIndex] = useState(0);
 
   // Overlay Controls
   const translateX = useSharedValue(0);
   const translateY = useSharedValue(0);
   const scale = useSharedValue(0.8);
+  const rotation = useSharedValue(0);
   const overlayOpacity = useSharedValue(0.8);
+
+  // Refs for simultaneous gestures
+  const panRef = useRef(null);
+  const pinchRef = useRef(null);
+  const rotationRef = useRef(null);
 
   const overlayAnimatedStyle = useAnimatedStyle(() => ({
     transform: [
       { translateX: translateX.value },
       { translateY: translateY.value },
       { scale: scale.value },
+      { rotate: `${rotation.value}rad` }
     ],
     opacity: overlayOpacity.value,
   }));
@@ -66,9 +88,35 @@ export default function TryOnScreen() {
     scale.value = event.nativeEvent.scale;
   };
 
-  const handleCapture = () => {
+  const onRotateGesture = (event: any) => {
+    rotation.value = event.nativeEvent.rotation;
+  };
+
+  const handleCapture = async () => {
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-    // Demo capture
+    
+    if (capturedImage) {
+      // If already captured, reset to live mode
+      setCapturedImage(null);
+      return;
+    }
+
+    if (cameraRef.current) {
+      setIsProcessing(true);
+      try {
+        const photo = await cameraRef.current.takePictureAsync({
+          quality: 0.8,
+          skipProcessing: true // Faster capture
+        });
+        if (photo) {
+            setCapturedImage(photo.uri);
+        }
+      } catch (e) {
+        console.error("Failed to take picture", e);
+      } finally {
+        setIsProcessing(false);
+      }
+    }
   };
 
   if (!permission) return <View style={styles.loading}><ActivityIndicator color={theme.colors.primary} /></View>;
@@ -89,17 +137,43 @@ export default function TryOnScreen() {
   return (
     <GestureHandlerRootView style={{ flex: 1 }}>
       <View style={styles.container}>
-        {Platform.OS !== 'web' ? (
-          <CameraView style={StyleSheet.absoluteFill} facing="front" />
+        {capturedImage ? (
+           // Photo Studio Mode
+           <Image 
+             source={{ uri: capturedImage }} 
+             style={StyleSheet.absoluteFill} 
+             contentFit="cover"
+           />
         ) : (
-          <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]}>
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800' }} 
-              style={StyleSheet.absoluteFill} 
-              contentFit="cover"
+          // Live Camera Mode
+          Platform.OS !== 'web' ? (
+            <CameraView 
+                ref={cameraRef}
+                style={StyleSheet.absoluteFill} 
+                facing="front" 
             />
-            <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark" />
-          </View>
+          ) : (
+            <View style={[StyleSheet.absoluteFill, { backgroundColor: '#111' }]}>
+              <Image 
+                source={{ uri: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800' }} 
+                style={StyleSheet.absoluteFill} 
+                contentFit="cover"
+              />
+              <BlurView intensity={20} style={StyleSheet.absoluteFill} tint="dark" />
+            </View>
+          )
+        )}
+
+        {/* Smart Silhouette Guide (Only in Live Mode) */}
+        {!capturedImage && (
+            <View style={styles.silhouetteContainer} pointerEvents="none">
+                <Image 
+                    source={require('@/assets/images/icon.png')} // Fallback if no specific silhouette asset
+                    style={[styles.silhouette, { opacity: 0.1, tintColor: '#fff' }]}
+                    contentFit="contain"
+                />
+                <Text style={styles.guideText}>Alinea tu cuerpo aquí</Text>
+            </View>
         )}
 
         {/* Top Controls */}
@@ -110,28 +184,48 @@ export default function TryOnScreen() {
             </BlurView>
           </Pressable>
           <View style={styles.arStatus}>
-            <View style={styles.pulseDot} />
-            <Text style={styles.arStatusText}>AR ELITE ACTIVO</Text>
+            <View style={[styles.pulseDot, capturedImage && { backgroundColor: '#4ADE80' }]} />
+            <Text style={styles.arStatusText}>
+                {capturedImage ? 'ESTUDIO FOTO' : 'AR LIVE'}
+            </Text>
           </View>
-          <Pressable style={styles.iconBtn}>
+          <Pressable style={styles.iconBtn} onPress={() => {
+              // Reset transformations
+              translateX.value = withSpring(0);
+              translateY.value = withSpring(0);
+              scale.value = withSpring(0.8);
+              rotation.value = withSpring(0);
+          }}>
             <BlurView intensity={40} tint="dark" style={styles.iconBlur}>
               <Ionicons name="refresh" size={20} color="#FFF" />
             </BlurView>
           </Pressable>
         </View>
 
-        {/* AR Overlay Area */}
+        {/* AR Overlay Area with Advanced Gestures */}
         <View style={styles.arArea}>
           {selectedProduct && (
-            <PanGestureHandler onGestureEvent={onPanGesture}>
-              <Animated.View style={[{ width: 300, height: 400 }, overlayAnimatedStyle]}>
-                <PinchGestureHandler onGestureEvent={onPinchGesture}>
-                  <Animated.Image
-                    source={{ uri: selectedProduct.images[0] }}
-                    style={styles.garmentOverlay}
-                    resizeMode="contain"
-                  />
-                </PinchGestureHandler>
+            <PanGestureHandler ref={panRef} onGestureEvent={onPanGesture} simultaneousHandlers={[pinchRef, rotationRef]}>
+              <Animated.View>
+                <RotationGestureHandler ref={rotationRef} onGestureEvent={onRotateGesture} simultaneousHandlers={[panRef, pinchRef]}>
+                    <Animated.View>
+                        <PinchGestureHandler ref={pinchRef} onGestureEvent={onPinchGesture} simultaneousHandlers={[panRef, rotationRef]}>
+                        <Animated.View style={[{ width: 300, height: 400 }, overlayAnimatedStyle]}>
+                            <Image
+                                source={{ uri: selectedProduct.images[0] }}
+                                style={[
+                                    styles.garmentOverlay, 
+                                    // Apply subtle tint based on selected color if available
+                                    selectedProduct.colors && selectedProduct.colors[selectedColorIndex] 
+                                    ? { tintColor: selectedProduct.colors[selectedColorIndex].hex === '#FFFFFF' ? undefined : selectedProduct.colors[selectedColorIndex].hex + 'AA' } // Semi-transparent tint
+                                    : {}
+                                ]}
+                                contentFit="contain"
+                            />
+                        </Animated.View>
+                        </PinchGestureHandler>
+                    </Animated.View>
+                </RotationGestureHandler>
               </Animated.View>
             </PanGestureHandler>
           )}
@@ -139,6 +233,33 @@ export default function TryOnScreen() {
 
         {/* Bottom Panel */}
         <View style={[styles.bottomPanel, { paddingBottom: insets.bottom + 20 }]}>
+          
+          {/* Color/Variant Selector */}
+          {selectedProduct?.colors && (
+              <ScrollView 
+                horizontal 
+                showsHorizontalScrollIndicator={false} 
+                contentContainerStyle={styles.colorSelectorContainer}
+                style={{ marginBottom: 16 }}
+              >
+                  {selectedProduct.colors.map((color, index) => (
+                      <Pressable
+                        key={index}
+                        onPress={() => {
+                            Haptics.selectionAsync();
+                            setSelectedColorIndex(index);
+                        }}
+                        style={[
+                            styles.colorDotOutline,
+                            selectedColorIndex === index && { borderColor: theme.colors.primary }
+                        ]}
+                      >
+                          <View style={[styles.colorDot, { backgroundColor: color.hex }]} />
+                      </Pressable>
+                  ))}
+              </ScrollView>
+          )}
+
           <View style={styles.selectorContainer}>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectorScroll}>
               {arProducts.map((p) => (
@@ -147,6 +268,7 @@ export default function TryOnScreen() {
                   onPress={() => {
                     Haptics.selectionAsync();
                     setSelectedProduct(p);
+                    setSelectedColorIndex(0); // Reset color on product change
                   }}
                   style={[styles.productThumb, selectedProduct?.id === p.id && styles.productThumbActive]}
                 >
@@ -163,10 +285,13 @@ export default function TryOnScreen() {
             
             <Pressable style={styles.captureBtn} onPress={handleCapture}>
               <LinearGradient
-                colors={theme.colors.gradient.primary}
+                colors={capturedImage ? ['#FF453A', '#FF9F0A'] : theme.colors.gradient.primary}
                 style={styles.captureGradient}
               />
-              <View style={styles.captureInner} />
+              <View style={styles.captureInner}>
+                 {isProcessing && <ActivityIndicator color="#FFF" />}
+                 {capturedImage && !isProcessing && <Ionicons name="close" size={30} color="#FFF" />}
+              </View>
             </Pressable>
 
             <Pressable style={styles.sideBtn}>
@@ -178,8 +303,10 @@ export default function TryOnScreen() {
         {/* UI Overlay Tips */}
         <Animated.View entering={FadeInUp.delay(500)} style={styles.gestureHint}>
           <BlurView intensity={30} tint="dark" style={styles.hintBlur}>
-            <Ionicons name="move" size={12} color="#AAA" />
-            <Text style={styles.hintText}>Usa dos dedos para escalar y uno para mover</Text>
+            <Ionicons name="hand-left-outline" size={14} color="#AAA" />
+            <Text style={styles.hintText}>
+                {capturedImage ? 'Ajusta la prenda sobre tu foto' : 'Congela la imagen para mayor precisión'}
+            </Text>
           </BlurView>
         </Animated.View>
       </View>
@@ -197,6 +324,25 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: '#000',
+  },
+  silhouetteContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    opacity: 0.6,
+  },
+  silhouette: {
+    width: '80%',
+    height: '60%',
+  },
+  guideText: {
+    color: 'rgba(255,255,255,0.5)',
+    marginTop: 20,
+    fontSize: 14,
+    fontWeight: '500',
+    textAlign: 'center',
+    textTransform: 'uppercase',
+    letterSpacing: 2,
   },
   topControls: {
     position: 'absolute',
@@ -249,7 +395,7 @@ const styles = StyleSheet.create({
   garmentOverlay: {
     width: '100%',
     height: '100%',
-    opacity: 0.9,
+    opacity: 0.95,
   },
   bottomPanel: {
     position: 'absolute',
@@ -257,6 +403,29 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     paddingTop: 20,
+    backgroundColor: 'rgba(0,0,0,0.3)', // Subtle gradient background could be better
+  },
+  colorSelectorContainer: {
+    paddingHorizontal: 24,
+    gap: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    minWidth: '100%',
+  },
+  colorDotOutline: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.1)',
+  },
+  colorDot: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
   },
   selectorContainer: {
     marginBottom: 24,
@@ -304,6 +473,8 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: '#FFF',
     backgroundColor: 'transparent',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   sideBtn: {
     width: 50,
@@ -367,5 +538,3 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   }
 });
-
-

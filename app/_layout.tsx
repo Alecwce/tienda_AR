@@ -1,6 +1,7 @@
 // app/_layout.tsx - Root layout for Virtual Vogue
 import { useProductStore } from '@/src/store';
 import { theme } from '@/src/theme';
+import { ThemeProvider } from '@/src/theme/ThemeContext';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -41,31 +42,34 @@ export default function RootLayout() {
   }
 
   return (
-    <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
-      <StatusBar style="light" />
-      <Stack
-        screenOptions={{
-          headerShown: false,
-          contentStyle: { backgroundColor: theme.colors.background },
-          animation: 'slide_from_right',
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="product/[id]"
-          options={{
-            presentation: 'card',
-            animation: 'slide_from_bottom',
+    <ThemeProvider>
+      <GestureHandlerRootView style={{ flex: 1, backgroundColor: theme.colors.background }}>
+        <StatusBar style="light" />
+        <Stack
+          screenOptions={{
+            headerShown: false,
+            contentStyle: { backgroundColor: theme.colors.background },
+            animation: 'slide_from_right',
           }}
-        />
-        <Stack.Screen
-          name="calibration"
-          options={{
-            presentation: 'modal',
-            animation: 'slide_from_bottom',
-          }}
-        />
-      </Stack>
-    </GestureHandlerRootView>
+        >
+          <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+          <Stack.Screen name="(auth)" options={{ headerShown: false, animation: 'fade' }} />
+          <Stack.Screen
+            name="product/[id]"
+            options={{
+              presentation: 'card',
+              animation: 'slide_from_bottom',
+            }}
+          />
+          <Stack.Screen
+            name="calibration"
+            options={{
+              presentation: 'modal',
+              animation: 'slide_from_bottom',
+            }}
+          />
+        </Stack>
+      </GestureHandlerRootView>
+    </ThemeProvider>
   );
 }

@@ -6,6 +6,7 @@ import {
 } from '@/src/components/ui';
 import { useProductStore, useUserStore } from '@/src/store';
 import { theme } from '@/src/theme';
+import { useTheme } from '@/src/theme/ThemeContext';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 import { Image } from 'expo-image';
@@ -47,6 +48,9 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const { featuredProducts } = useProductStore();
   const { measurements } = useUserStore();
+  const { colors, isDark } = useTheme();
+
+  const styles = React.useMemo(() => createStyles(colors), [colors]);
 
   const floatValue = useSharedValue(0);
 
@@ -135,7 +139,7 @@ export default function HomeScreen() {
                 onPress={() => router.push({ pathname: '/catalog', params: { category: cat.id } })}
               >
                 <Image source={{ uri: cat.image }} style={styles.categoryImage} />
-                <BlurView intensity={40} tint="dark" style={styles.categoryOverlay}>
+                <BlurView intensity={40} tint={isDark ? "dark" : "light"} style={styles.categoryOverlay}>
                   <Text style={styles.categoryName}>{cat.name}</Text>
                 </BlurView>
               </Pressable>
@@ -224,10 +228,10 @@ function interpolate(value: number, input: number[], output: number[]) {
   return minOut + (maxOut - minOut) * (value - minIn) / (maxIn - minIn);
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.background,
   },
   heroWrapper: {
     marginBottom: theme.spacing.lg,
@@ -299,11 +303,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 22,
     fontWeight: '800',
-    color: theme.colors.text,
+    color: colors.text,
     letterSpacing: -0.5,
   },
   seeAll: {
-    color: theme.colors.primary,
+    color: colors.primary,
     fontSize: 14,
     fontWeight: '600',
   },
@@ -330,7 +334,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   categoryName: {
-    color: '#FFF',
+    color: '#FFF', // Keep white as it is on image overlay
     fontSize: 12,
     fontWeight: 'bold',
     letterSpacing: 0.5,
@@ -359,12 +363,12 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   calibrationTitle: {
-    color: '#FFF',
+    color: colors.text, // Adapted for GlassCard content
     fontSize: 18,
     fontWeight: '800',
   },
   calibrationSub: {
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     fontSize: 13,
     marginTop: 2,
   },
@@ -389,7 +393,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: theme.colors.primary,
+    backgroundColor: colors.primary,
     paddingHorizontal: 10,
     paddingVertical: 5,
     borderRadius: 6,

@@ -6,6 +6,8 @@ import {
     SearchInput,
 } from '@/src/components/ui';
 import { useProductStore } from '@/src/store';
+import { useTheme } from '@/src/theme/ThemeContext';
+// Re-import theme for layout usage
 import { theme } from '@/src/theme';
 import type { Product, ProductCategory } from '@/src/types';
 import { Ionicons } from '@expo/vector-icons';
@@ -46,6 +48,11 @@ export default function CatalogScreen() {
     setSearchQuery,
     setFilters,
   } = useProductStore();
+  
+  const { colors } = useTheme();
+  
+  // Memoize styles to avoid recreation on every render
+  const styles = useMemo(() => createStyles(colors), [colors]);
 
   React.useEffect(() => {
     if (params.category) {
@@ -109,7 +116,7 @@ export default function CatalogScreen() {
           <Ionicons 
             name="options-outline" 
             size={18} 
-            color={filters.hasAR ? theme.colors.primary : theme.colors.textSecondary} 
+            color={filters.hasAR ? colors.primary : colors.textSecondary} 
           />
           <Text style={[styles.filterBtnText, filters.hasAR && styles.filterBtnTextActive]}>
             {filters.hasAR ? 'Solo AR On' : 'Filtros'}
@@ -117,7 +124,7 @@ export default function CatalogScreen() {
         </Pressable>
       </View>
     </View>
-  ), [searchQuery, selectedCategory, filteredProducts.length, filters.hasAR, handleCategorySelect, setSearchQuery, setFilters]);
+  ), [searchQuery, selectedCategory, filteredProducts.length, filters.hasAR, handleCategorySelect, setSearchQuery, setFilters, styles, colors]);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
@@ -125,7 +132,7 @@ export default function CatalogScreen() {
         <Text style={styles.title}>Catálogo</Text>
         <View style={styles.headerIcons}>
           <Pressable style={styles.iconBtn}>
-            <Ionicons name="notifications-outline" size={24} color={theme.colors.text} />
+            <Ionicons name="notifications-outline" size={24} color={colors.text} />
           </Pressable>
         </View>
       </View>
@@ -146,7 +153,7 @@ export default function CatalogScreen() {
         ListEmptyComponent={
           <Animated.View entering={FadeIn.delay(400)} style={styles.emptyState}>
             <GlassCard style={styles.emptyCard}>
-              <Ionicons name="search-outline" size={48} color={theme.colors.textDimmed} />
+              <Ionicons name="search-outline" size={48} color={colors.textDimmed} />
               <Text style={styles.emptyTitle}>Sin coincidencias</Text>
               <Text style={styles.emptyText}>Prueba con otros términos o filtros.</Text>
             </GlassCard>
@@ -157,10 +164,11 @@ export default function CatalogScreen() {
   );
 }
 
-const styles = StyleSheet.create({
+// Style Generator Function
+const createStyles = (colors: any) => StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: colors.background,
   },
   topHeader: {
     flexDirection: 'row',
@@ -172,7 +180,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 28,
     fontWeight: '900',
-    color: theme.colors.text,
+    color: colors.text,
     letterSpacing: -1,
   },
   headerIcons: {
@@ -183,11 +191,11 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: colors.surface,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: colors.border,
   },
   headerContent: {
     paddingBottom: 8,
@@ -210,10 +218,10 @@ const styles = StyleSheet.create({
   },
   resultsCount: {
     fontSize: 14,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
   },
   countBold: {
-    color: theme.colors.text,
+    color: colors.text,
     fontWeight: 'bold',
   },
   filterBtn: {
@@ -223,17 +231,17 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: theme.radius.md,
-    backgroundColor: theme.colors.surface,
+    backgroundColor: colors.surface,
     borderWidth: 1,
-    borderColor: theme.colors.border,
+    borderColor: colors.border,
   },
   filterBtnText: {
     fontSize: 12,
-    color: theme.colors.textSecondary,
+    color: colors.textSecondary,
     fontWeight: '600',
   },
   filterBtnTextActive: {
-    color: theme.colors.primary,
+    color: colors.primary,
   },
   listContent: {
     paddingHorizontal: theme.spacing.md,
@@ -254,12 +262,12 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: theme.colors.text,
+    color: colors.text,
     marginTop: 16,
   },
   emptyText: {
     fontSize: 14,
-    color: theme.colors.textMuted,
+    color: colors.textMuted,
     marginTop: 8,
     textAlign: 'center',
   },
